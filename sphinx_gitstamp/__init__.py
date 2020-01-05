@@ -43,8 +43,8 @@ def page_context_handler(app, pagename, templatename, context, doctree):
         return
 
     try:
-        gitlog = g.log('--pretty=format:%aI,%an', '-n 1', "%s.rst" % fullpagename)
-        commit_date, commit_author = gitlog.split(',')
+        gitlog = g.log('--pretty=format:%aI,%an,%h', '-n 1', "%s.rst" % fullpagename)
+        commit_date, commit_author, commit_hash = gitlog.split(',')
 
         if gitlog == "":
             # Don't datestamp generated rst's (e.g. imapd.conf.rst)
@@ -56,6 +56,7 @@ def page_context_handler(app, pagename, templatename, context, doctree):
 
         context['gittstamp'] = tstamp.strftime(app.config.gitstamp_fmt)
         context['gitauthor'] = commit_author
+        context['gitcommit'] = commit_hash
 
     except git.exc.GitCommandError:
         # File doesn't exist or something else went wrong.
