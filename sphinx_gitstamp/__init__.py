@@ -43,17 +43,19 @@ def page_context_handler(app, pagename, templatename, context, doctree):
         return
 
     try:
-        updated = g.log('--pretty=format:%aI', '-n 1', "%s.rst" % fullpagename)
+        gitlog = g.log('--pretty=format:%aI,%an', '-n 1', "%s.rst" % fullpagename)
+        commit_date, commit_author = gitlog.split(',')
 
-        if updated == "":
+        if gitlog == "":
             # Don't datestamp generated rst's (e.g. imapd.conf.rst)
             # Ideally want to check their source - lib/imapoptions, etc, but
             # that involves getting the source/output pair into the extension.
             return
 
-        tstamp = iso8601.parse_date(updated)
+        tstamp = iso8601.parse_date(commit_date)
 
         context['gittstamp'] = tstamp.strftime(app.config.gitstamp_fmt)
+        context['gitauthor'] = commit_author
 
     except git.exc.GitCommandError:
         # File doesn't exist or something else went wrong.
@@ -92,7 +94,7 @@ def what_build_am_i(app):
 # We can't immediately add a page context handler: we need to wait until we
 # know what the build output format is.
 def setup(app):
-    app.add_config_value('gitstamp_fmt', "%b %d, %Y at %I:%M %p (UTC%z)", 'html')
+    app.add_config_value('gitstamp_fmt', "%b %d, %Y at %I:%M %p", 'html')
     app.connect('builder-inited', what_build_am_i)
 
     return {
