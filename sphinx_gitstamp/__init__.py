@@ -9,14 +9,18 @@
 # all copies or substantial portions of the Software.
 
 import os
-import datetime
+import iso8601
 from sphinx import errors
 
 # Gets the datestamp of the latest commit on the given file
 # Converts the datestamp into something more readable
 # Skips files whose datestamp we can't parse.
-# Expected git datestamp format: 2017-06-07 11:57:38 +1000
-# Output to June 7, 2017
+
+# Note: Outputs time in the commiters timezone.
+
+# Example:
+#   A commit with an iso8601 timestamp of 2020-01-05T15:27:40-05:00
+#   will have a default output of "Jan 05, 2020 at 03:27 PM (UTC-0500)"
 
 
 def page_context_handler(app, pagename, templatename, context, doctree):
@@ -39,8 +43,7 @@ def page_context_handler(app, pagename, templatename, context, doctree):
         return
 
     try:
-        updated = g.log('--pretty=format:%ai', '-n 1', "%s.rst" % fullpagename)
-        updated = updated[:10]
+        updated = g.log('--pretty=format:%aI', '-n 1', "%s.rst" % fullpagename)
 
         if updated == "":
             # Don't datestamp generated rst's (e.g. imapd.conf.rst)
@@ -48,12 +51,10 @@ def page_context_handler(app, pagename, templatename, context, doctree):
             # that involves getting the source/output pair into the extension.
             return
 
-        context['gitstamp'] = datetime.datetime.strptime(
-                updated,
-                "%Y-%m-%d"
-            ).strftime(
-                app.config.gitstamp_fmt
-            )
+        tstamp = iso8601.parse_date(updated)
+
+        context['gittstamp'] = tstamp.strftime(app.config.gitstamp_fmt)
+
     except git.exc.GitCommandError:
         # File doesn't exist or something else went wrong.
         raise errors.ExtensionError("Can't fetch git history for %s.rst." %
@@ -91,7 +92,7 @@ def what_build_am_i(app):
 # We can't immediately add a page context handler: we need to wait until we
 # know what the build output format is.
 def setup(app):
-    app.add_config_value('gitstamp_fmt', "%b %d, %Y", 'html')
+    app.add_config_value('gitstamp_fmt', "%b %d, %Y at %I:%M %p (UTC%z)", 'html')
     app.connect('builder-inited', what_build_am_i)
 
     return {

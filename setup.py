@@ -18,7 +18,7 @@ setup(
     version=__version__,
     author='Jared Dillard',
     author_email='jared.dillard@gmail.com',
-    install_requires=['six', 'sphinx >= 1.2', 'gitpython'],
+    install_requires=['six', 'sphinx >= 1.2', 'gitpython', 'iso8601'],
     url="https://github.com/jdillard/sphinx-gitstamp",
     license='MIT',
     download_url="https://github.com/jdillard/sphinx-gitstamp/archive/v0.3.0.tar.gz",
